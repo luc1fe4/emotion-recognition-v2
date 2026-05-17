@@ -64,6 +64,12 @@ npm install
 npm run dev
 ```
 
+From the monorepo root, install all Node workspaces with:
+
+```bash
+npm install
+```
+
 Open [http://localhost:3000](http://localhost:3000).
 
 ## Health Checks

@@ -58,6 +58,7 @@ Response:
 {
   "success": true,
   "data": {
+    "id": "uuid",
     "jobId": "uuid",
     "status": "queued",
     "totalRows": 12,

@@ -8,6 +8,8 @@
 - Environment:
   - `NEXT_PUBLIC_API_URL=https://your-api.example.com`
 
+Current frontend package note: `next@16.3.0-canary.21` is used to satisfy production `npm audit` while the latest stable Next release remains flagged for a nested PostCSS advisory. Pin or upgrade to the first stable patched Next release before long-lived production deployment.
+
 ## Backend: Render, Railway, Fly.io, VPS
 
 - Project directory: `emotion-recognition-app/apps/api`.

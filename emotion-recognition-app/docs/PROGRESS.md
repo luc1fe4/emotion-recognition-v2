@@ -23,10 +23,15 @@
 - Added real model API client integration through `MODEL_API_URL`.
 - Added CSV parsing, upload validation, BullMQ queue integration, worker entry point, and synchronous local fallback when Redis enqueue is unavailable.
 - Added backend schema/CSV unit tests.
+- Implemented the Next.js App Router frontend under `apps/web/`.
+- Added polished responsive analyzer UI with loading, error, result, confidence, score distribution, batch upload, export, and history states.
+- Added TanStack Query API integration, React Hook Form + Zod validation, Tailwind styling, shadcn-style UI primitives, Recharts probability charting, and frontend `.env.example`.
+- Updated batch upload response to include `jobId` while preserving the database `id`.
+- Disabled Next canary `agentRules` file generation to keep repository contents intentional.
 
 ### Currently Running
 
-- Building the Next.js frontend around the API and shared contracts.
+- Final validation, documentation updates, and Git commit.
 
 ### Decisions
 
@@ -34,11 +39,13 @@
 - The application source lives under `emotion-recognition-app/` so model assets remain isolated.
 - The architecture is 3-Tier + Client-Server with a separated FastAPI inference service.
 - Clean Architecture is not used.
+- The frontend currently uses `next@16.3.0-canary.21` because latest stable `16.2.6` was still flagged by `npm audit --omit=dev` for Next/PostCSS advisories. Revisit this when a stable patched Next release is available.
 
 ### Blockers And Handling
 
 - `python` and `py` are not available on PATH in the current shell. The real model service will still be implemented, and model runtime validation will be marked blocked until Python is installed or exposed on PATH.
 - PowerShell blocks `npm.ps1`; Node package commands should use `npm.cmd` on this Windows environment.
+- The in-app browser could not navigate to `localhost` or `127.0.0.1` and returned `ERR_BLOCKED_BY_CLIENT`. Shell HTTP smoke tests were used for local frontend verification instead.
 
 ### Test Results
 
@@ -58,8 +65,22 @@
 - `npm --workspace @emotion-recognition/api run test`: passed, 4 tests.
 - `npm --workspace @emotion-recognition/api run build`: passed.
 - Manual API health check against compiled server: passed, returned `{"success":true,"service":"emotion-recognition-api","status":"ok","modelApiUrl":"http://localhost:8000"}`.
+- `npm --workspace @emotion-recognition/web run typecheck`: initially failed on React 19 typing conflicts with Radix Slot and Recharts 2.x; fixed by removing Radix Slot usage and upgrading Recharts to 3.8.1; reran successfully.
+- `npm --workspace @emotion-recognition/web run build`: initially failed on the same React typing issue and then a server/client boundary around `buttonVariants`; fixed and reran successfully.
+- `npm audit --omit=dev`: initially flagged Next stable and nested PostCSS advisories; upgraded to `next@16.3.0-canary.21` and added a PostCSS override; reran successfully with 0 production vulnerabilities.
+- Frontend dev server smoke test: passed with HTTP 200 for `/` and `/history`.
+- Browser visual smoke test: blocked by `ERR_BLOCKED_BY_CLIENT` for local URLs in the in-app browser.
+- `docker --version`: passed with Docker 29.3.0, with a warning that the current user cannot read Docker config.
+- `docker compose version`: passed with Docker Compose v5.1.0, with the same Docker config warning.
+- `docker compose config --quiet`: passed.
+- Safe model-unavailable API check: passed; `POST /api/emotions/analyze` returned `{"success":false,"message":"Unable to analyze the text at the moment. Please try again."}` when FastAPI was not running.
+- Full monorepo `npm run lint`: passed.
+- Full monorepo `npm run typecheck`: passed.
+- Full monorepo `npm run test`: passed.
+- Full monorepo `npm run build`: passed.
 
 ### Commits
 
 - `261f0be` - `docs: add project architecture baseline`
 - `34f18eb` - `feat(model-api): implement real PhoBERT inference service`
+- `3ed353f` - `feat(api): add Express emotion analysis backend`

@@ -10,6 +10,8 @@ npm run typecheck
 npm run build
 ```
 
+On Windows PowerShell with script execution disabled, use `npm.cmd` instead of `npm`.
+
 Manual checks:
 
 - Analyzer accepts Vietnamese text and shows loading, error, and result states.
@@ -26,6 +28,8 @@ npm run lint
 npm run typecheck
 npm run test
 ```
+
+On Windows PowerShell with script execution disabled, use `npm.cmd` instead of `npm`.
 
 Manual checks:
 

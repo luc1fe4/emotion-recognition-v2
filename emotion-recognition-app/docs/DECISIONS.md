@@ -21,6 +21,12 @@
 - Use BullMQ with Redis for batch jobs.
 - Keep a synchronous fallback for development only when Redis is unavailable, while still returning real model API results if the model service is available.
 
+## Frontend Dependency Security
+
+- Use the current Next canary `16.3.0-canary.21` because the latest stable release available during implementation, `16.2.6`, still produced production `npm audit` findings through Next's nested PostCSS dependency.
+- Keep the PostCSS override in the root package file until the stable Next line resolves the advisory cleanly.
+- Revisit this decision before production deployment and prefer a stable patched Next release when one is published.
+
 ## Database
 
 - PostgreSQL is the source of truth for analysis history, batch jobs, and batch results.

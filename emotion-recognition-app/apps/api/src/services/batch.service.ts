@@ -50,6 +50,7 @@ export async function createBatchFromCsv(file: Express.Multer.File) {
     if (queuedJob) {
       return {
         ...toIsoJob(batchJob),
+        jobId: batchJob.id,
         queueMode: "redis" as const,
       };
     }
@@ -65,6 +66,7 @@ export async function createBatchFromCsv(file: Express.Multer.File) {
 
   return {
     ...toIsoJob(refreshedJob),
+    jobId: refreshedJob.id,
     queueMode: "synchronous" as const,
   };
 }

@@ -30,3 +30,4 @@
 - If backend analysis fails, check `MODEL_API_URL`, model API health, and backend logs.
 - If history is unavailable, check `DATABASE_URL`, migrations, and PostgreSQL connectivity.
 - If batch jobs stay queued, check `REDIS_URL`, worker process status, and BullMQ logs.
+- If frontend dependency audit starts failing around Next canary or PostCSS, check the stable Next release line and update the pin once a stable patched release is available.

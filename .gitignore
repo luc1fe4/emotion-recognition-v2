@@ -14,6 +14,7 @@ emotion-recognition-app/**/dist/
 emotion-recognition-app/**/coverage/
 emotion-recognition-app/**/.turbo/
 emotion-recognition-app/**/npm-debug.log*
+emotion-recognition-app/**/*.tsbuildinfo
 
 # Python
 __pycache__/
