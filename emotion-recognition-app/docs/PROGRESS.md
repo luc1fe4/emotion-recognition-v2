@@ -84,3 +84,4 @@
 - `261f0be` - `docs: add project architecture baseline`
 - `34f18eb` - `feat(model-api): implement real PhoBERT inference service`
 - `3ed353f` - `feat(api): add Express emotion analysis backend`
+- `7e52322` - `feat(web): build emotion analysis interface`
