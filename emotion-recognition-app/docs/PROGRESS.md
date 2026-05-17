@@ -12,10 +12,14 @@
 - Added root and app ignore rules for environments, dependencies, build output, caches, and uploads.
 - Added Docker Compose for local PostgreSQL and Redis.
 - Added initial documentation baseline.
+- Implemented the FastAPI model API under `apps/model-api/`.
+- Added real Transformers model loading with the required Hugging Face repository.
+- Added `/health`, `/predict`, and `/predict-batch`.
+- Added input validation, safe validation errors, safe model-unavailable errors, singleton-style model loading, softmax probability output, and Vietnamese label metadata.
 
 ### Currently Running
 
-- Building the FastAPI model service, Express API, Prisma schema, shared contracts, and Next.js frontend around the existing immutable model assets.
+- Building the Express API, Prisma schema, shared contracts, and Next.js frontend around the existing immutable model assets.
 
 ### Decisions
 
@@ -36,7 +40,9 @@
 - `node --version`: passed with `v22.17.1`.
 - `python --version`: failed because Python is not installed or not on PATH.
 - `py --version`: failed because no Python launcher is installed.
+- Static model API check: confirmed `repo_id`, `AutoTokenizer.from_pretrained`, `AutoModelForSequenceClassification.from_pretrained`, `torch.no_grad`, and `torch.softmax` are present in the inference path.
+- Model API runtime check: blocked because Python is not installed or not on PATH.
 
 ### Commits
 
-- Pending.
+- `261f0be` - `docs: add project architecture baseline`
