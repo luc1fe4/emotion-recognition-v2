@@ -1,2 +1,35 @@
 *.zip
 baseline_phobert_vsmec/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Node / Next.js
+node_modules/
+emotion-recognition-app/**/node_modules/
+emotion-recognition-app/**/.next/
+emotion-recognition-app/**/dist/
+emotion-recognition-app/**/coverage/
+emotion-recognition-app/**/.turbo/
+emotion-recognition-app/**/npm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+emotion-recognition-app/apps/model-api/.venv/
+
+# Local uploads and generated files
+emotion-recognition-app/apps/api/uploads/
+emotion-recognition-app/apps/api/tmp/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

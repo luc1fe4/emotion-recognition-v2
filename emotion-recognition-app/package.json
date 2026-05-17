@@ -1,0 +1,25 @@
+{
+  "name": "vietnamese-emotion-recognition",
+  "version": "0.1.0",
+  "private": true,
+  "description": "End-to-end Vietnamese social media emotion recognition platform.",
+  "workspaces": [
+    "apps/web",
+    "apps/api",
+    "packages/shared"
+  ],
+  "scripts": {
+    "dev:web": "npm --workspace @emotion-recognition/web run dev",
+    "dev:api": "npm --workspace @emotion-recognition/api run dev",
+    "build": "npm --workspaces --if-present run build",
+    "lint": "npm --workspaces --if-present run lint",
+    "typecheck": "npm --workspaces --if-present run typecheck",
+    "test": "npm --workspaces --if-present run test",
+    "prisma:generate": "npm --workspace @emotion-recognition/api run prisma:generate",
+    "prisma:migrate": "npm --workspace @emotion-recognition/api run prisma:migrate"
+  },
+  "engines": {
+    "node": ">=20.11.0",
+    "npm": ">=10.0.0"
+  }
+}

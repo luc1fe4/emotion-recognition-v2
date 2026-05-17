@@ -1,0 +1,33 @@
+*.zip
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Node / Next.js
+node_modules/
+**/node_modules/
+**/.next/
+**/dist/
+**/coverage/
+**/.turbo/
+npm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+apps/model-api/.venv/
+
+# Local upload scratch space
+apps/api/uploads/
+apps/api/tmp/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
