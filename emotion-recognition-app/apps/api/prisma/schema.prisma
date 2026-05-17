@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model EmotionAnalysis {
+  id             String   @id @default(uuid()) @db.Uuid
+  inputText      String
+  predictedLabel String
+  displayLabelVi String
+  emoji          String
+  confidence     Float
+  scoresJson     Json
+  source         String   @default("web")
+  createdAt      DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([predictedLabel])
+}
+
+model BatchJob {
+  id            String        @id @default(uuid()) @db.Uuid
+  status        String        @default("queued")
+  fileName      String?
+  totalRows     Int           @default(0)
+  processedRows Int           @default(0)
+  failedRows    Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  results       BatchResult[]
+
+  @@index([status])
+}
+
+model BatchResult {
+  id             String   @id @default(uuid()) @db.Uuid
+  batchJobId     String   @db.Uuid
+  rowIndex       Int
+  inputText      String
+  predictedLabel String?
+  displayLabelVi String?
+  emoji          String?
+  confidence     Float?
+  scoresJson     Json?
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+  batchJob       BatchJob @relation(fields: [batchJobId], references: [id], onDelete: Cascade)
+
+  @@index([batchJobId])
+  @@unique([batchJobId, rowIndex])
+}

@@ -16,10 +16,17 @@
 - Added real Transformers model loading with the required Hugging Face repository.
 - Added `/health`, `/predict`, and `/predict-batch`.
 - Added input validation, safe validation errors, safe model-unavailable errors, singleton-style model loading, softmax probability output, and Vietnamese label metadata.
+- Implemented shared TypeScript emotion constants and Zod contracts under `packages/shared/`.
+- Implemented the Express API under `apps/api/` with route-controller-service boundaries.
+- Added security middleware, CORS by environment, rate limiting, Morgan HTTP logs, Winston structured logs, centralized errors, and safe JSON error envelopes.
+- Added Prisma PostgreSQL schema for analysis history, batch jobs, and batch results with requested indexes.
+- Added real model API client integration through `MODEL_API_URL`.
+- Added CSV parsing, upload validation, BullMQ queue integration, worker entry point, and synchronous local fallback when Redis enqueue is unavailable.
+- Added backend schema/CSV unit tests.
 
 ### Currently Running
 
-- Building the Express API, Prisma schema, shared contracts, and Next.js frontend around the existing immutable model assets.
+- Building the Next.js frontend around the API and shared contracts.
 
 ### Decisions
 
@@ -42,7 +49,17 @@
 - `py --version`: failed because no Python launcher is installed.
 - Static model API check: confirmed `repo_id`, `AutoTokenizer.from_pretrained`, `AutoModelForSequenceClassification.from_pretrained`, `torch.no_grad`, and `torch.softmax` are present in the inference path.
 - Model API runtime check: blocked because Python is not installed or not on PATH.
+- `npm.cmd install`: passed after switching local package linkage from `workspace:*` to `file:` because this npm build rejected the workspace protocol.
+- `npm.cmd audit --omit=dev`: passed with 0 production vulnerabilities.
+- `npm --workspace @emotion-recognition/shared run build`: passed.
+- `npm --workspace @emotion-recognition/shared run typecheck`: passed.
+- `npm --workspace @emotion-recognition/api run prisma:generate`: passed.
+- `npm --workspace @emotion-recognition/api run typecheck`: initially failed on shared package resolution, Prisma event typing, and ioredis import style; fixed and reran successfully.
+- `npm --workspace @emotion-recognition/api run test`: passed, 4 tests.
+- `npm --workspace @emotion-recognition/api run build`: passed.
+- Manual API health check against compiled server: passed, returned `{"success":true,"service":"emotion-recognition-api","status":"ok","modelApiUrl":"http://localhost:8000"}`.
 
 ### Commits
 
 - `261f0be` - `docs: add project architecture baseline`
+- `34f18eb` - `feat(model-api): implement real PhoBERT inference service`

@@ -60,7 +60,8 @@ Response:
   "data": {
     "jobId": "uuid",
     "status": "queued",
-    "totalRows": 12
+    "totalRows": 12,
+    "queueMode": "redis"
   }
 }
 ```
