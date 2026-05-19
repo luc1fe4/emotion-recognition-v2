@@ -14,6 +14,10 @@ node_modules/
 **/.turbo/
 **/*.tsbuildinfo
 npm-debug.log*
+**/next-env.d.ts
+
+# Temporary / test files
+apps/model-api/test.json
 
 # Python
 __pycache__/
