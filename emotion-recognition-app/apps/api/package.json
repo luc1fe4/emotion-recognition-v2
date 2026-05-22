@@ -6,8 +6,8 @@
   "main": "dist/server.js",
   "scripts": {
     "predev": "npm --workspace @emotion-recognition/shared run build",
-    "dev": "tsx watch src/server.ts",
-    "worker": "tsx watch src/worker.ts",
+    "dev": "tsx watch --tsconfig tsconfig.dev.json src/server.ts",
+    "worker": "tsx watch --tsconfig tsconfig.dev.json src/worker.ts",
     "build": "npm --workspace @emotion-recognition/shared run build && prisma generate && tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "lint": "tsc --noEmit --pretty false",

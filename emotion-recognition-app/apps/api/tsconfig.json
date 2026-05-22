@@ -13,7 +13,7 @@
     "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      "@emotion-recognition/shared": ["../../packages/shared/src/index.ts"]
+      "@emotion-recognition/shared": ["../../packages/shared/dist/index.d.ts"]
     },
     "forceConsistentCasingInFileNames": true
   },
