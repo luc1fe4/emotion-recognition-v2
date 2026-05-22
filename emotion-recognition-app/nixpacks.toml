@@ -1,0 +1,15 @@
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["npm install"]
+
+[phases.build]
+cmds = [
+  "npm --workspace @emotion-recognition/shared run build",
+  "npm --workspace @emotion-recognition/api run build",
+  "cd apps/api && npx prisma migrate deploy"
+]
+
+[start]
+cmd = "node apps/api/dist/server.js"
