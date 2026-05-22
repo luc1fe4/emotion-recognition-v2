@@ -1,0 +1,4 @@
+# Ignore Python model-api Dockerfile so Railway uses Nixpacks for Node.js API
+apps/model-api/Dockerfile
+apps/model-api/.venv/
+apps/model-api/__pycache__/
