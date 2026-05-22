@@ -9,6 +9,7 @@ cmds = [
   "npm --workspace @emotion-recognition/shared run build",
   "npm --workspace @emotion-recognition/api run build"
 ]
+envs = { DATABASE_URL = "postgresql://dummy:dummy@localhost:5432/dummy" }
 
 [start]
 cmd = "cd apps/api && npx prisma migrate deploy && cd ../.. && node apps/api/dist/server.js"
