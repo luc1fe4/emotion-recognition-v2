@@ -7,9 +7,8 @@ cmds = ["npm install"]
 [phases.build]
 cmds = [
   "npm --workspace @emotion-recognition/shared run build",
-  "npm --workspace @emotion-recognition/api run build",
-  "cd apps/api && npx prisma migrate deploy"
+  "npm --workspace @emotion-recognition/api run build"
 ]
 
 [start]
-cmd = "node apps/api/dist/server.js"
+cmd = "cd apps/api && npx prisma migrate deploy && cd ../.. && node apps/api/dist/server.js"
