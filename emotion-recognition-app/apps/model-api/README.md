@@ -1,56 +1,65 @@
-# Model API
+---
+title: Vietnamese Emotion Recognition Model API
+emoji: 😊
+colorFrom: blue
+colorTo: purple
+sdk: docker
+pinned: false
+license: mit
+short_description: FastAPI service for Vietnamese emotion recognition using PhoBERT
+---
 
-FastAPI service for real Vietnamese emotion recognition inference with:
+# Vietnamese Emotion Recognition Model API
 
-`tazuneru/baseline-phobert-vsmec-emotion-recognition`
-
-The loader uses the required Transformers pattern:
-
-```python
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-
-repo_id = "tazuneru/baseline-phobert-vsmec-emotion-recognition"
-
-tokenizer = AutoTokenizer.from_pretrained(repo_id)
-model = AutoModelForSequenceClassification.from_pretrained(repo_id)
-```
-
-In the implementation, `MODEL_NAME` defaults to that same repository ID.
-
-## Run Locally
-
-```bash
-python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# macOS/Linux
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-```
+FastAPI inference service for Vietnamese emotion recognition using the PhoBERT-based model fine-tuned on VSMEC dataset.
 
 ## Endpoints
 
-- `GET /health`
-- `POST /predict`
-- `POST /predict-batch`
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/health` | Health check — confirms model is loaded |
+| `POST` | `/predict` | Predict emotion for a single Vietnamese text |
+| `POST` | `/predict-batch` | Predict emotions for multiple texts |
 
-## Example
+## Usage
 
+### Health check
 ```bash
-curl -X POST http://localhost:8000/predict \
-  -H "Content-Type: application/json" \
-  -d "{\"text\":\"hôm nay tôi rất vui\"}"
+curl https://<your-space-url>/health
 ```
 
-## Environment
+### Predict
+```bash
+curl -X POST https://<your-space-url>/predict \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Hôm nay tôi rất vui!"}'
+```
 
-Copy `.env.example` to `.env` for local settings.
+### Response
+```json
+{
+  "predictedLabel": "Enjoyment",
+  "displayLabelVi": "Vui vẻ",
+  "emoji": "😊",
+  "confidence": 0.94,
+  "scores": [...]
+}
+```
 
-- `MODEL_NAME`: Hugging Face model repository.
-- `DEVICE`: `cpu`, `cuda`, or `mps`.
-- `MAX_TOKENS`: tokenizer truncation length.
-- `MAX_TEXT_LENGTH`: request text length limit.
-- `LOG_LEVEL`: Python logging level.
+## Model
 
-The service does not return mock predictions. If the model cannot load, prediction endpoints return a safe `503` error.
+- **Model:** [tazuneru/baseline-phobert-vsmec-emotion-recognition](https://huggingface.co/tazuneru/baseline-phobert-vsmec-emotion-recognition)
+- **Architecture:** PhoBERT (RoBERTa-based) fine-tuned for sequence classification
+- **Labels:** Sadness, Surprise, Disgust, Fear, Anger, Other, Enjoyment
+- **Language:** Vietnamese
+
+## Environment Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `MODEL_NAME` | `tazuneru/baseline-phobert-vsmec-emotion-recognition` | HuggingFace model repo |
+| `DEVICE` | `cpu` | `cpu` or `cuda` |
+| `MAX_TOKENS` | `256` | Max tokenizer length |
+| `MAX_TEXT_LENGTH` | `700` | Max input characters |
+| `CORS_ORIGIN` | `*` | Allowed CORS origins |
+| `LOG_LEVEL` | `INFO` | Logging level |
