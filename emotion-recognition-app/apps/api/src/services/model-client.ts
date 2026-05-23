@@ -1,4 +1,4 @@
-import { predictionSchema, type Prediction } from "@emotion-recognition/shared";
+import { predictionSchema, type Prediction, type SupportedLanguage } from "@emotion-recognition/shared";
 
 import { env } from "../config/env.js";
 import { logger } from "../config/logger.js";
@@ -19,17 +19,18 @@ async function readSafeError(response: Response) {
   }
 }
 
-export async function predictEmotion(text: string): Promise<Prediction> {
+export async function predictEmotion(text: string, language: SupportedLanguage): Promise<Prediction> {
   const response = await fetch(`${env.MODEL_API_URL}/predict`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, language }),
     signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
   }).catch((error: unknown) => {
     logger.error("Model API request failed", {
       modelApiUrl: env.MODEL_API_URL,
       error,
       textLength: text.length,
+      language,
     });
     throw new AppError(
       503,
@@ -44,6 +45,7 @@ export async function predictEmotion(text: string): Promise<Prediction> {
       status: response.status,
       modelMessage,
       textLength: text.length,
+      language,
     });
     throw new AppError(
       503,

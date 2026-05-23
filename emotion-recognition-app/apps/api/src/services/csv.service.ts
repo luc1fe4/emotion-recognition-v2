@@ -1,13 +1,16 @@
 import { parse } from "csv-parse/sync";
+import { DEFAULT_LANGUAGE, languageSchema, type SupportedLanguage } from "@emotion-recognition/shared";
 
 import { AppError } from "../utils/app-error.js";
 
 export interface CsvTextRow {
   rowIndex: number;
   text: string;
+  language: SupportedLanguage;
+  errorMessage?: string;
 }
 
-export function parseCsvTextRows(buffer: Buffer): CsvTextRow[] {
+export function parseCsvTextRows(buffer: Buffer, defaultLanguage: SupportedLanguage = DEFAULT_LANGUAGE): CsvTextRow[] {
   if (buffer.length === 0) {
     throw new AppError(400, "The CSV file is empty.");
   }
@@ -36,9 +39,14 @@ export function parseCsvTextRows(buffer: Buffer): CsvTextRow[] {
 
   return records.map((record, index) => {
     const text = String(record.text ?? "").trim();
+    const rawLanguage = String(record.language ?? defaultLanguage).trim().toLowerCase();
+    const parsedLanguage = languageSchema.safeParse(rawLanguage);
+
     return {
       rowIndex: index,
       text,
+      language: parsedLanguage.success ? parsedLanguage.data : defaultLanguage,
+      errorMessage: parsedLanguage.success ? undefined : "Unsupported language. Use 'vi' or 'en'.",
     };
   });
 }

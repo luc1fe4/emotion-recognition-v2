@@ -21,6 +21,8 @@ const envSchema = z.object({
   LOG_LEVEL: z.string().default("info"),
   MAX_TEXT_LENGTH: numberFromEnv(700),
   CSV_MAX_FILE_SIZE_MB: numberFromEnv(5),
+  DEFAULT_LANGUAGE: z.enum(["vi", "en"]).default("vi"),
+  SUPPORTED_LANGUAGES: z.string().default("vi,en"),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -1,4 +1,4 @@
-import { analyzeTextRequestSchema } from "@emotion-recognition/shared";
+import { DEFAULT_LANGUAGE, analyzeTextRequestSchema, languageSchema } from "@emotion-recognition/shared";
 import type { RequestHandler } from "express";
 
 import { createBatchFromCsv } from "../services/batch.service.js";
@@ -23,6 +23,11 @@ export const uploadEmotionBatch: RequestHandler = async (req, res) => {
     throw new AppError(400, "Please upload a CSV file.");
   }
 
-  const result = await createBatchFromCsv(req.file);
+  const language = languageSchema.parse(
+    typeof req.body.language === "string" && req.body.language.trim()
+      ? req.body.language.trim().toLowerCase()
+      : DEFAULT_LANGUAGE,
+  );
+  const result = await createBatchFromCsv(req.file, language);
   res.status(202).json({ success: true, data: result });
 };

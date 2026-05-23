@@ -1,4 +1,9 @@
-import type { BatchResult as SharedBatchResult, BatchStatus } from "@emotion-recognition/shared";
+import type {
+  BatchResult as SharedBatchResult,
+  BatchStatus,
+  ScoreItem,
+  SupportedLanguage,
+} from "@emotion-recognition/shared";
 
 import { env } from "../config/env.js";
 import { prisma } from "../config/prisma.js";
@@ -12,6 +17,7 @@ function toIsoJob(job: {
   id: string;
   status: string;
   fileName: string | null;
+  language: string;
   totalRows: number;
   processedRows: number;
   failedRows: number;
@@ -22,6 +28,7 @@ function toIsoJob(job: {
     id: job.id,
     status: job.status as BatchStatus,
     fileName: job.fileName,
+    language: job.language as SupportedLanguage,
     totalRows: job.totalRows,
     processedRows: job.processedRows,
     failedRows: job.failedRows,
@@ -30,17 +37,18 @@ function toIsoJob(job: {
   };
 }
 
-export async function createBatchFromCsv(file: Express.Multer.File) {
+export async function createBatchFromCsv(file: Express.Multer.File, language: SupportedLanguage) {
   if (!file) {
     throw new AppError(400, "Please upload a CSV file.");
   }
 
-  const rows = parseCsvTextRows(file.buffer);
+  const rows = parseCsvTextRows(file.buffer, language);
 
   const batchJob = await prisma.batchJob.create({
     data: {
       status: "queued",
       fileName: file.originalname,
+      language,
       totalRows: rows.length,
     },
   });
@@ -81,17 +89,18 @@ export async function processBatchRows(jobId: string, rows: CsvTextRow[]) {
   let failedRows = 0;
 
   for (const row of rows) {
-    if (!row.text || row.text.length > env.MAX_TEXT_LENGTH) {
+    if (row.errorMessage || !row.text || row.text.length > env.MAX_TEXT_LENGTH) {
       failedRows += 1;
       processedRows += 1;
-      const errorMessage = !row.text
-        ? "Text is required."
-        : `Text must be ${env.MAX_TEXT_LENGTH} characters or fewer.`;
+      const errorMessage =
+        row.errorMessage ??
+        (!row.text ? "Text is required." : `Text must be ${env.MAX_TEXT_LENGTH} characters or fewer.`);
       await prisma.batchResult.create({
         data: {
           batchJobId: jobId,
           rowIndex: row.rowIndex,
           inputText: row.text,
+          language: row.language,
           errorMessage,
         },
       });
@@ -100,7 +109,7 @@ export async function processBatchRows(jobId: string, rows: CsvTextRow[]) {
     }
 
     try {
-      const prediction = await predictEmotion(row.text);
+      const prediction = await predictEmotion(row.text, row.language);
 
       await prisma.$transaction([
         prisma.batchResult.create({
@@ -109,20 +118,29 @@ export async function processBatchRows(jobId: string, rows: CsvTextRow[]) {
             rowIndex: row.rowIndex,
             inputText: row.text,
             predictedLabel: prediction.predictedLabel,
+            displayLabel: prediction.displayLabel,
             displayLabelVi: prediction.displayLabelVi,
             emoji: prediction.emoji,
             confidence: prediction.confidence,
             scoresJson: prediction.scores,
+            scoreItemsJson: prediction.scoreItems,
+            language: prediction.language,
+            modelName: prediction.modelName,
+            modelVersion: prediction.modelVersion,
           },
         }),
         prisma.emotionAnalysis.create({
           data: {
             inputText: row.text,
             predictedLabel: prediction.predictedLabel,
+            displayLabel: prediction.displayLabel,
             displayLabelVi: prediction.displayLabelVi,
             emoji: prediction.emoji,
             confidence: prediction.confidence,
             scoresJson: prediction.scores,
+            language: prediction.language,
+            modelName: prediction.modelName,
+            modelVersion: prediction.modelVersion,
             source: "csv",
           },
         }),
@@ -140,6 +158,7 @@ export async function processBatchRows(jobId: string, rows: CsvTextRow[]) {
           batchJobId: jobId,
           rowIndex: row.rowIndex,
           inputText: row.text,
+          language: row.language,
           errorMessage: "Unable to analyze this row. Please try again later.",
         },
       });
@@ -190,11 +209,54 @@ export async function getBatchResults(jobId: string) {
     rowIndex: row.rowIndex,
     inputText: row.inputText,
     predictedLabel: row.predictedLabel,
+    displayLabel: row.displayLabel,
     displayLabelVi: row.displayLabelVi,
     emoji: row.emoji,
     confidence: row.confidence,
-    scores: row.scoresJson as SharedBatchResult["scores"],
+    scores: scoreMapFromStoredScores(row.scoresJson),
+    scoreItems: scoreItemsFromStoredScores(row.scoreItemsJson ?? row.scoresJson),
+    language: row.language as SupportedLanguage,
+    modelName: row.modelName,
+    modelVersion: row.modelVersion,
     errorMessage: row.errorMessage,
     createdAt: row.createdAt.toISOString(),
+  }));
+}
+
+function scoreMapFromStoredScores(scoresJson: unknown): SharedBatchResult["scores"] {
+  if (Array.isArray(scoresJson)) {
+    return Object.fromEntries((scoresJson as ScoreItem[]).map((score) => [score.label, score.score]));
+  }
+
+  if (!scoresJson || typeof scoresJson !== "object") {
+    return null;
+  }
+
+  return scoresJson as SharedBatchResult["scores"];
+}
+
+function scoreItemsFromStoredScores(scoresJson: unknown): SharedBatchResult["scoreItems"] {
+  if (Array.isArray(scoresJson)) {
+    return (scoresJson as Array<{ label: string; displayLabel?: string; displayLabelVi?: string; emoji?: string; score: number }>).map(
+      (score) => ({
+        label: score.label,
+        displayLabel: score.displayLabel ?? score.label,
+        displayLabelVi: score.displayLabelVi ?? score.label,
+        emoji: score.emoji ?? "\ud83d\ude10",
+        score: score.score,
+      }),
+    );
+  }
+
+  if (!scoresJson || typeof scoresJson !== "object") {
+    return null;
+  }
+
+  return Object.entries(scoresJson as Record<string, number>).map(([label, score]) => ({
+    label,
+    displayLabel: label,
+    displayLabelVi: label,
+    emoji: "\ud83d\ude10",
+    score,
   }));
 }

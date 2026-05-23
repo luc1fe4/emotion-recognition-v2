@@ -11,21 +11,28 @@ model EmotionAnalysis {
   id             String   @id @default(uuid()) @db.Uuid
   inputText      String
   predictedLabel String
+  displayLabel   String   @default("")
   displayLabelVi String
   emoji          String
   confidence     Float
   scoresJson     Json
+  language       String   @default("vi")
+  modelName      String   @default("tazuneru/baseline-phobert-vsmec-emotion-recognition")
+  modelVersion   String   @default("main")
   source         String   @default("web")
   createdAt      DateTime @default(now())
 
   @@index([createdAt])
   @@index([predictedLabel])
+  @@index([language])
+  @@index([modelName])
 }
 
 model BatchJob {
   id            String        @id @default(uuid()) @db.Uuid
   status        String        @default("queued")
   fileName      String?
+  language      String        @default("vi")
   totalRows     Int           @default(0)
   processedRows Int           @default(0)
   failedRows    Int           @default(0)
@@ -42,10 +49,15 @@ model BatchResult {
   rowIndex       Int
   inputText      String
   predictedLabel String?
+  displayLabel   String?
   displayLabelVi String?
   emoji          String?
   confidence     Float?
   scoresJson     Json?
+  scoreItemsJson Json?
+  language       String   @default("vi")
+  modelName      String?
+  modelVersion   String?
   errorMessage   String?
   createdAt      DateTime @default(now())
   batchJob       BatchJob @relation(fields: [batchJobId], references: [id], onDelete: Cascade)

@@ -5,6 +5,17 @@ import { ZodError } from "zod";
 import { logger } from "../config/logger.js";
 import { AppError } from "../utils/app-error.js";
 
+function isZodLikeError(error: unknown): error is ZodError {
+  return (
+    error instanceof ZodError ||
+    (typeof error === "object" &&
+      error !== null &&
+      "issues" in error &&
+      Array.isArray((error as { issues?: unknown }).issues) &&
+      typeof (error as { flatten?: unknown }).flatten === "function")
+  );
+}
+
 export const errorHandler: ErrorRequestHandler = (error, req, res, _next) => {
   if (error instanceof AppError) {
     logger.warn("Handled application error", {
@@ -17,7 +28,7 @@ export const errorHandler: ErrorRequestHandler = (error, req, res, _next) => {
     return;
   }
 
-  if (error instanceof ZodError) {
+  if (isZodLikeError(error)) {
     logger.warn("Request validation failed", {
       path: req.path,
       method: req.method,
