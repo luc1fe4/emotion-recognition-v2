@@ -9,7 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from model_loader import ModelUnavailableError, get_model_service
+from model_loader import ModelUnavailableError, UnsupportedLanguageError, get_model_service
 from schemas import (
     BatchPredictionItem,
     HealthResponse,
@@ -30,16 +30,13 @@ logger = logging.getLogger("emotion-recognition-model-api")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     service = get_model_service()
-    try:
-        service.load()
-    except ModelUnavailableError:
-        logger.error("Model API started without a loaded model; prediction endpoints will return safe errors.")
+    service.preload()
     yield
 
 
 app = FastAPI(
-    title="Vietnamese Emotion Recognition Model API",
-    version="0.1.0",
+    title="Bilingual Emotion Recognition Model API",
+    version="0.2.0",
     lifespan=lifespan,
 )
 
@@ -61,32 +58,43 @@ async def model_unavailable_handler(request: Request, exc: ModelUnavailableError
     )
 
 
+@app.exception_handler(UnsupportedLanguageError)
+async def unsupported_language_handler(request: Request, exc: UnsupportedLanguageError) -> JSONResponse:
+    logger.warning("Unsupported language", extra={"path": request.url.path, "reason": str(exc)})
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content={"detail": "Unsupported language. Use 'vi' or 'en'."},
+    )
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     logger.warning("Invalid model API request", extra={"path": request.url.path, "errors": exc.errors()})
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={"detail": "Please provide valid Vietnamese text within the allowed length."},
+        content={"detail": "Please provide valid text, language, and length."},
     )
 
 
 @app.get("/health", response_model=HealthResponse)
 async def health() -> HealthResponse:
     service = get_model_service()
+    models = service.health()
     return HealthResponse(
         success=True,
         service="emotion-recognition-model-api",
-        status="ok" if service.is_loaded else "degraded",
-        modelLoaded=service.is_loaded,
-        modelName=service.settings.model_name,
+        status="ok" if service.default_loaded else "degraded",
+        modelLoaded=service.default_loaded,
+        defaultLanguage=service.settings.default_language,  # type: ignore[arg-type]
+        supportedLanguages=["vi", "en"],
         device=str(service.device),
-        labels=service.labels,
+        models=models,
     )
 
 
 @app.post("/predict", response_model=PredictionResponse)
 async def predict(payload: PredictRequest) -> PredictionResponse:
-    return get_model_service().predict(payload.text)
+    return get_model_service().predict(payload.text, payload.language)
 
 
 @app.post("/predict-batch", response_model=PredictBatchResponse)
@@ -95,8 +103,8 @@ async def predict_batch(payload: PredictBatchRequest) -> PredictBatchResponse:
     service = get_model_service()
 
     for item in payload.items:
-        prediction = service.predict(item.text)
-        results.append(BatchPredictionItem(inputText=item.text, prediction=prediction))
+        prediction = service.predict(item.text, item.language)
+        results.append(BatchPredictionItem(inputText=item.text, language=item.language, prediction=prediction))
 
     return PredictBatchResponse(results=results)
 
