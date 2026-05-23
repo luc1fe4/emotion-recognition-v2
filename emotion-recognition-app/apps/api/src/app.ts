@@ -13,6 +13,10 @@ import jobRoutes from "./routes/jobs.routes.js";
 
 export const app = express();
 
+// Trust Railway's reverse proxy so express-rate-limit can read the real
+// client IP from the X-Forwarded-For header instead of throwing ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
+app.set("trust proxy", 1);
+
 app.disable("x-powered-by");
 app.use(helmet());
 app.use(
