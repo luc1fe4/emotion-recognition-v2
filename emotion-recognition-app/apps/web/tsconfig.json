@@ -28,7 +28,7 @@
         "./src/*"
       ],
       "@emotion-recognition/shared": [
-        "../../packages/shared/dist/index.d.ts"
+        "../../packages/shared/src/index.ts"
       ]
     }
   },
