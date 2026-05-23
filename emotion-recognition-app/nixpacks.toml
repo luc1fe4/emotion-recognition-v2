@@ -2,12 +2,13 @@
 nixPkgs = ["nodejs_20"]
 
 [phases.install]
-cmds = ["npm install"]
+cmds = ["npm install --include=dev"]
 
 [phases.build]
 cmds = [
   "npm --workspace @emotion-recognition/shared run build",
-  "npm --workspace @emotion-recognition/api run build"
+  "npm --workspace @emotion-recognition/api run build",
+  "npm prune --omit=dev"
 ]
 envs = { DATABASE_URL = "postgresql://dummy:dummy@localhost:5432/dummy" }
 
