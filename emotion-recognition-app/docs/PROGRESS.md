@@ -85,3 +85,36 @@
 - `34f18eb` - `feat(model-api): implement real PhoBERT inference service`
 - `3ed353f` - `feat(api): add Express emotion analysis backend`
 - `7e52322` - `feat(web): build emotion analysis interface`
+
+## 2026-05-23
+
+### Completed
+
+- Deployed the full three-tier application to production:
+  - **Model API** → Hugging Face Spaces (`https://lcphuc-emotion-model-api.hf.space`), Docker runtime.
+  - **Backend API** → Railway (`https://charming-abundance-production-eda1.up.railway.app`), nixpacks build.
+  - **Frontend** → Vercel (`https://emotion-recognition-v2-five.vercel.app`), Next.js.
+- Diagnosed and fixed six production bugs encountered during and after deployment.
+
+### Bugs Fixed
+
+1. **`parseAsync` undefined in browser bundle** — The `@emotion-recognition/shared` package compiled to CommonJS. When Next.js bundled it for the browser, `zod` resolved incorrectly, making `parseAsync` undefined. Fixed by adding `transpilePackages: ["@emotion-recognition/shared"]` to `next.config.mjs` so webpack processes the CJS dist directly.
+
+2. **CORS blocked on Vercel frontend** — `CORS_ORIGIN` on Railway only contained `http://localhost:3000`. Added `https://emotion-recognition-v2-five.vercel.app` to the comma-separated value via Railway dashboard.
+
+3. **`ERR_ERL_UNEXPECTED_X_FORWARDED_FOR`** — Railway's reverse proxy adds `X-Forwarded-For`. Fixed by adding `app.set("trust proxy", 1)` in `app.ts` before rate-limit middleware.
+
+4. **`tsc: not found` on Railway build** — Production `npm install` skipped `devDependencies` (including `typescript`). Fixed in `nixpacks.toml`: changed install phase to `npm install --include=dev` and added `npm prune --omit=dev` after build.
+
+5. **`ERR_UNKNOWN_FILE_EXTENSION .ts` at Node.js runtime** — An `"import": "./src/index.ts"` export condition was added for webpack but Node.js ESM runtime also resolves the `import` condition and cannot execute `.ts` files. Removed the condition; `"default": "./dist/index.js"` handles all Node.js consumers.
+
+6. **HF Space `modelLoaded: false` / 503 from backend** — `HF_HOME` was set to `/app/.cache/huggingface`, which is owned by root after build. The non-root `appuser` got a `PermissionError` when attempting to download the model. Fixed by changing `HF_HOME` and `TRANSFORMERS_CACHE` to `/home/appuser/.cache/huggingface` and adding `chown -R appuser:appuser /app` in the Dockerfile.
+
+### Commits
+
+- `0615645` - `fix: use transpilePackages to resolve CJS/ESM zod conflict in browser bundle`
+- `379c9dc` - `fix: add trust proxy for Railway reverse proxy (ERR_ERL_UNEXPECTED_X_FORWARDED_FOR)`
+- `b916ad9` - `fix: install devDeps for build (tsc not found) then prune in nixpacks`
+- `df6b36b` - `fix: revert import condition to dist/index.js to fix Node.js ESM runtime (ERR_UNKNOWN_FILE_EXTENSION .ts)`
+- `36d29ae` - `fix: move HF cache to appuser home dir to fix PermissionError on model download` *(HF Space repo)*
+

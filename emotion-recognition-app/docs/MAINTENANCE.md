@@ -10,6 +10,7 @@
 
 - Monitor API latency, model inference latency, error rate, queue depth, and database connection usage.
 - Alert on repeated model API failures and stalled BullMQ jobs.
+- Check HF Space `/health` endpoint periodically — `modelLoaded` must be `true`; a `degraded` status means the model failed to load at startup.
 
 ## Backups
 
@@ -26,8 +27,13 @@
 
 ## Troubleshooting
 
-- If model loading fails, check Python version, PyTorch installation, network access to Hugging Face, disk space, and memory.
-- If backend analysis fails, check `MODEL_API_URL`, model API health, and backend logs.
+- **Model loading fails on HF Space (`modelLoaded: false`)** — check that `HF_HOME` is set to a directory writable by the container user (e.g. `/home/appuser/.cache/huggingface`). A `PermissionError` on `/app/.cache` means the cache path is owned by root. Push a Dockerfile fix and let the Space rebuild.
+- **Backend returns 503** — check Railway logs for `Model API request failed`. Verify `MODEL_API_URL` is set to the correct HF Space URL and that the Space is running (not sleeping or building). The first request after a cold start may time out; wait and retry.
+- **CORS blocked on frontend** — verify `CORS_ORIGIN` on Railway includes the exact Vercel origin (no trailing slash). Multiple origins are comma-separated.
+- **`express-rate-limit` throws `ERR_ERL_UNEXPECTED_X_FORWARDED_FOR`** — ensure `app.set("trust proxy", 1)` is present in `app.ts` before any rate limiting middleware.
+- **Railway build fails with `tsc: not found`** — ensure `nixpacks.toml` install phase uses `npm install --include=dev` so devDependencies (including TypeScript) are installed before the build step.
+- **Next.js browser bundle: `Cannot read properties of undefined (reading 'parseAsync')`** — ensure `transpilePackages: ["@emotion-recognition/shared"]` is present in `next.config.mjs`. This forces webpack to process the shared CJS module through its transform pipeline instead of treating it as an external pre-compiled module.
+- **Node.js runtime: `ERR_UNKNOWN_FILE_EXTENSION .ts`** — remove any `"import"` export condition in `packages/shared/package.json` that points to a `.ts` source file. Node.js ESM uses the `import` condition at runtime and cannot execute TypeScript directly.
 - If history is unavailable, check `DATABASE_URL`, migrations, and PostgreSQL connectivity.
 - If batch jobs stay queued, check `REDIS_URL`, worker process status, and BullMQ logs.
 - If frontend dependency audit starts failing around Next canary or PostCSS, check the stable Next release line and update the pin once a stable patched release is available.

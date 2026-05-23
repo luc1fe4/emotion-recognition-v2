@@ -27,6 +27,30 @@
 - Keep the PostCSS override in the root package file until the stable Next line resolves the advisory cleanly.
 - Revisit this decision before production deployment and prefer a stable patched Next release when one is published.
 
+## Shared Package Module Format
+
+- The `@emotion-recognition/shared` package compiles to CommonJS (`dist/index.js`) only.
+- Do not add an `"import"` export condition pointing to `.ts` source — Node.js ESM runtime also resolves the `import` condition and cannot load `.ts` files directly, causing `ERR_UNKNOWN_FILE_EXTENSION`.
+- The `"source"` field is kept for bundler tooling that supports it but is ignored by the Node.js runtime.
+- `transpilePackages: ["@emotion-recognition/shared"]` in `next.config.mjs` ensures webpack processes the CJS dist through its transform pipeline for the browser bundle, resolving the `zod` undefined runtime error.
+
+## Express Trust Proxy
+
+- Set `app.set("trust proxy", 1)` in the Express application before any middleware that reads client IPs.
+- Railway (and most PaaS platforms) sit behind a reverse proxy that adds `X-Forwarded-For`. Without trust proxy, `express-rate-limit` throws `ERR_ERL_UNEXPECTED_X_FORWARDED_FOR` and cannot identify clients correctly.
+
+## Railway Build (nixpacks)
+
+- Use `npm install --include=dev` during the install phase so `tsc` (in devDependencies) is available for the build step.
+- Run `npm prune --omit=dev` after the build to remove devDependencies from the final image, keeping the runtime image lean.
+- Set `DATABASE_URL` to a dummy value during the build phase so `prisma generate` does not fail on the Railway build runner where the real database is not reachable.
+
+## HuggingFace Spaces Cache Directory
+
+- Set `HF_HOME=/home/appuser/.cache/huggingface` (not `/app/.cache`).
+- The `/app` directory in the Docker image is owned by root. After switching to `appuser`, writing to `/app/.cache` causes a `PermissionError` that silently prevents model loading, leaving the Space in `degraded` status.
+- `/home/appuser` is created by `useradd -m` and is writable by `appuser`.
+
 ## Database
 
 - PostgreSQL is the source of truth for analysis history, batch jobs, and batch results.
