@@ -1,6 +1,7 @@
 {
-  "installCommand": "npm install",
-  "buildCommand": "npm --workspace @emotion-recognition/web run build",
-  "outputDirectory": "apps/web/.next",
+  "rootDirectory": "apps/web",
+  "installCommand": "cd ../.. && npm install",
+  "buildCommand": "cd ../.. && npm --workspace @emotion-recognition/shared run build && npm --workspace @emotion-recognition/web run build",
+  "outputDirectory": ".next",
   "framework": "nextjs"
 }
