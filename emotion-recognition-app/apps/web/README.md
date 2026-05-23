@@ -1,6 +1,6 @@
 # Web App
 
-Next.js App Router frontend for Vietnamese social media emotion recognition.
+Next.js App Router frontend for Vietnamese and English social media emotion recognition.
 
 ## Run
 
@@ -27,4 +27,4 @@ Copy `.env.example` to `.env.local` and set:
 NEXT_PUBLIC_API_URL=http://localhost:4000
 ```
 
-The frontend calls the Node.js API only. It does not call the FastAPI model service directly.
+The frontend calls the Node.js API only. It does not call the FastAPI model service directly. Single-text and CSV batch analysis send `language` as `vi` or `en`.

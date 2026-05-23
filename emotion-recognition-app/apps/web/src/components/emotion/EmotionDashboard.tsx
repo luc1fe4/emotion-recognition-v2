@@ -22,10 +22,10 @@ export function EmotionDashboard() {
           <div>
             <div className="flex items-center gap-2 text-sm font-semibold text-primary">
               <Activity className="h-4 w-4" />
-              Vietnamese Emotion Recognition
+              Bilingual Emotion Recognition
             </div>
             <h1 className="mt-2 max-w-3xl text-2xl font-semibold leading-tight sm:text-4xl">
-              Analyze Vietnamese social media emotion
+              Analyze Vietnamese and English social emotion
             </h1>
           </div>
           <nav className="flex flex-wrap gap-2">
@@ -35,7 +35,7 @@ export function EmotionDashboard() {
             </Link>
             <a
               className={buttonVariants({ variant: "ghost" })}
-              href="https://huggingface.co/tazuneru/baseline-phobert-vsmec-emotion-recognition"
+                href="https://huggingface.co/tazuneru/roberta-emotion-english"
               rel="noreferrer"
               target="_blank"
             >
@@ -75,7 +75,7 @@ export function EmotionDashboard() {
                   </div>
                   <div className="rounded-md bg-muted p-3">
                     <dt className="text-muted-foreground">Model</dt>
-                    <dd className="mt-1 font-semibold">FastAPI</dd>
+                    <dd className="mt-1 font-semibold">FastAPI Registry</dd>
                   </div>
                   <div className="rounded-md bg-muted p-3">
                     <dt className="text-muted-foreground">Database</dt>

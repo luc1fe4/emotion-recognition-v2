@@ -11,7 +11,7 @@ export default function HistoryPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-primary">Emotion Recognition</p>
-            <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">Lịch sử phân tích</h1>
+            <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">Analysis history</h1>
           </div>
           <Link className={buttonVariants({ variant: "outline" })} href="/">
             <ArrowLeft className="h-4 w-4" />

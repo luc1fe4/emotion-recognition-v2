@@ -1,4 +1,4 @@
-import type { AnalysisResult, BatchJob, BatchResult, HistoryItem } from "@emotion-recognition/shared";
+import type { AnalysisResult, BatchJob, BatchResult, HistoryItem, SupportedLanguage } from "@emotion-recognition/shared";
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").replace(/\/$/, "");
 
@@ -38,10 +38,10 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return payload.data;
 }
 
-export function analyzeEmotion(text: string) {
+export function analyzeEmotion(text: string, language: SupportedLanguage) {
   return apiFetch<AnalysisResult>("/api/emotions/analyze", {
     method: "POST",
-    body: JSON.stringify({ text, source: "web" }),
+    body: JSON.stringify({ text, language, source: "web" }),
   });
 }
 
@@ -50,9 +50,10 @@ export type BatchUploadResult = BatchJob & {
   queueMode?: "redis" | "synchronous";
 };
 
-export function uploadBatch(file: File) {
+export function uploadBatch(file: File, language: SupportedLanguage) {
   const body = new FormData();
   body.append("file", file);
+  body.append("language", language);
 
   return apiFetch<BatchUploadResult>("/api/emotions/batch", {
     method: "POST",
@@ -76,10 +77,14 @@ export function exportResultsCsv(rows: BatchResult[]) {
   const header = [
     "rowIndex",
     "inputText",
+    "language",
     "predictedLabel",
+    "displayLabel",
     "displayLabelVi",
     "emoji",
     "confidence",
+    "modelName",
+    "modelVersion",
     "errorMessage",
   ];
 
@@ -89,10 +94,14 @@ export function exportResultsCsv(rows: BatchResult[]) {
       [
         row.rowIndex + 1,
         row.inputText,
+        row.language,
         row.predictedLabel ?? "",
+        row.displayLabel ?? "",
         row.displayLabelVi ?? "",
         row.emoji ?? "",
         row.confidence ?? "",
+        row.modelName ?? "",
+        row.modelVersion ?? "",
         row.errorMessage ?? "",
       ]
         .map((value) => `"${String(value).replaceAll('"', '""')}"`)

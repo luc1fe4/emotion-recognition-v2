@@ -1,8 +1,14 @@
 "use client";
 
-import { MAX_TEXT_LENGTH } from "@emotion-recognition/shared";
+import {
+  DEFAULT_LANGUAGE,
+  LANGUAGE_LABELS,
+  MAX_TEXT_LENGTH,
+  SUPPORTED_LANGUAGES,
+  type SupportedLanguage,
+} from "@emotion-recognition/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, FileUp, Loader2, RefreshCw, UploadCloud } from "lucide-react";
+import { Download, FileUp, Globe2, Loader2, RefreshCw, UploadCloud } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { exportResultsCsv, getJob, getJobResults, uploadBatch } from "@/lib/api";
-import { formatPercent, getErrorMessage } from "@/lib/utils";
+import { formatLanguageName, formatPercent, getErrorMessage } from "@/lib/utils";
 
 const MAX_FILE_SIZE_MB = 5;
 const ACTIVE_STATUSES = new Set(["queued", "processing"]);
@@ -21,9 +27,10 @@ export function BatchUploadPanel() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [clientError, setClientError] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
+  const [language, setLanguage] = useState<SupportedLanguage>(DEFAULT_LANGUAGE);
 
   const uploadMutation = useMutation({
-    mutationFn: (file: File) => uploadBatch(file),
+    mutationFn: (file: File) => uploadBatch(file, language),
     onSuccess(data) {
       setJobId(data.jobId ?? data.id);
       void queryClient.invalidateQueries({ queryKey: ["history"] });
@@ -65,12 +72,12 @@ export function BatchUploadPanel() {
 
     const isCsv = file.type === "text/csv" || file.name.toLowerCase().endsWith(".csv");
     if (!isCsv) {
-      setClientError("Vui lòng chọn file CSV.");
+      setClientError("Please choose a CSV file.");
       return;
     }
 
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      setClientError(`File tối đa ${MAX_FILE_SIZE_MB} MB.`);
+      setClientError(`File max is ${MAX_FILE_SIZE_MB} MB.`);
       return;
     }
 
@@ -89,12 +96,32 @@ export function BatchUploadPanel() {
               <UploadCloud className="h-5 w-5 text-primary" />
               Batch CSV
             </CardTitle>
-            <CardDescription>Column: text, max {MAX_TEXT_LENGTH} chars</CardDescription>
+            <CardDescription>Column: text, optional language, max {MAX_TEXT_LENGTH} chars</CardDescription>
           </div>
           {jobQuery.data ? <Badge>{jobQuery.data.status}</Badge> : null}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <span className="flex items-center gap-2 text-sm font-semibold">
+            <Globe2 className="h-4 w-4 text-primary" />
+            Batch default language
+          </span>
+          <div className="grid grid-cols-2 gap-2 rounded-md border bg-muted p-1">
+            {SUPPORTED_LANGUAGES.map((option) => (
+              <Button
+                key={option}
+                type="button"
+                variant={language === option ? "default" : "ghost"}
+                disabled={uploadMutation.isPending}
+                onClick={() => setLanguage(option)}
+              >
+                {LANGUAGE_LABELS[option]}
+              </Button>
+            ))}
+          </div>
+        </div>
+
         <input
           ref={inputRef}
           type="file"
@@ -141,7 +168,7 @@ export function BatchUploadPanel() {
               </span>
             </div>
             <Progress value={progress} />
-            <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="grid grid-cols-4 gap-2 text-center">
               <div className="rounded-md bg-muted px-2 py-2">
                 <p className="text-lg font-semibold">{jobQuery.data.totalRows}</p>
                 <p className="text-xs text-muted-foreground">Rows</p>
@@ -153,6 +180,10 @@ export function BatchUploadPanel() {
               <div className="rounded-md bg-muted px-2 py-2">
                 <p className="text-lg font-semibold">{jobQuery.data.failedRows}</p>
                 <p className="text-xs text-muted-foreground">Failed</p>
+              </div>
+              <div className="rounded-md bg-muted px-2 py-2">
+                <p className="text-lg font-semibold">{formatLanguageName(jobQuery.data.language)}</p>
+                <p className="text-xs text-muted-foreground">Default</p>
               </div>
             </div>
           </div>
@@ -180,11 +211,12 @@ export function BatchUploadPanel() {
               </div>
             </div>
             <div className="max-h-72 overflow-auto rounded-md border">
-              <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+              <table className="w-full min-w-[760px] border-collapse text-left text-sm">
                 <thead className="sticky top-0 bg-muted">
                   <tr>
                     <th className="p-3 font-semibold">Row</th>
                     <th className="p-3 font-semibold">Text</th>
+                    <th className="p-3 font-semibold">Language</th>
                     <th className="p-3 font-semibold">Emotion</th>
                     <th className="p-3 text-right font-semibold">Score</th>
                   </tr>
@@ -194,8 +226,9 @@ export function BatchUploadPanel() {
                     <tr key={row.id} className="border-t bg-white">
                       <td className="p-3">{row.rowIndex + 1}</td>
                       <td className="max-w-sm truncate p-3">{row.inputText}</td>
+                      <td className="p-3">{formatLanguageName(row.language)}</td>
                       <td className="p-3">
-                        {row.predictedLabel ? `${row.emoji} ${row.displayLabelVi}` : row.errorMessage}
+                        {row.predictedLabel ? `${row.emoji} ${row.displayLabel}` : row.errorMessage}
                       </td>
                       <td className="p-3 text-right tabular-nums">
                         {row.confidence !== null ? formatPercent(row.confidence) : ""}

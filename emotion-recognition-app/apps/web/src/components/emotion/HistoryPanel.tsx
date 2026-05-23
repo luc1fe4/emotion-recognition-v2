@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getHistory } from "@/lib/api";
-import { formatPercent, formatTime, getErrorMessage } from "@/lib/utils";
+import { formatLanguageName, formatPercent, formatTime, getErrorMessage } from "@/lib/utils";
 
 export function HistoryPanel({ expanded = false }: { expanded?: boolean }) {
   const limit = expanded ? 50 : 8;
@@ -23,9 +23,9 @@ export function HistoryPanel({ expanded = false }: { expanded?: boolean }) {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Clock3 className="h-5 w-5 text-primary" />
-              Lịch sử
+              History
             </CardTitle>
-            <CardDescription>{expanded ? "Danh sách đầy đủ" : "Gần đây"}</CardDescription>
+            <CardDescription>{expanded ? "All analyses" : "Recent analyses"}</CardDescription>
           </div>
           <Button
             aria-label="Refresh history"
@@ -55,7 +55,7 @@ export function HistoryPanel({ expanded = false }: { expanded?: boolean }) {
 
         {!historyQuery.isLoading && historyQuery.data?.items.length === 0 ? (
           <div className="rounded-md border border-dashed bg-muted/45 p-5 text-center text-sm text-muted-foreground">
-            Chưa có lịch sử.
+            No history yet.
           </div>
         ) : null}
 
@@ -68,10 +68,12 @@ export function HistoryPanel({ expanded = false }: { expanded?: boolean }) {
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-lg leading-none">{item.emoji}</span>
-                  <span className="font-semibold">{item.displayLabelVi}</span>
+                  <span className="font-semibold">{item.displayLabel}</span>
                   <Badge>{formatPercent(item.confidence)}</Badge>
+                  <Badge>{formatLanguageName(item.language)}</Badge>
                 </div>
                 <p className="mt-1 line-clamp-2 text-sm leading-6 text-muted-foreground">{item.inputText}</p>
+                {expanded ? <p className="mt-1 break-all text-xs text-muted-foreground">{item.modelName}</p> : null}
               </div>
               <time className="text-sm text-muted-foreground">{formatTime(item.createdAt)}</time>
             </div>

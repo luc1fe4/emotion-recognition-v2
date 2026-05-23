@@ -6,7 +6,7 @@ import { BarChart3, Gauge } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { formatPercent } from "@/lib/utils";
+import { formatLanguageName, formatPercent } from "@/lib/utils";
 import { ProbabilityChart } from "./ProbabilityChart";
 
 export function EmotionResultCard({ result, isLoading }: { result?: AnalysisResult | null; isLoading: boolean }) {
@@ -16,9 +16,9 @@ export function EmotionResultCard({ result, isLoading }: { result?: AnalysisResu
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Gauge className="h-5 w-5 text-primary" />
-            Kết quả
+            Result
           </CardTitle>
-          <CardDescription>Đang phân tích</CardDescription>
+          <CardDescription>Analyzing</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="h-28 animate-pulse rounded-md bg-muted" />
@@ -38,20 +38,20 @@ export function EmotionResultCard({ result, isLoading }: { result?: AnalysisResu
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-primary" />
-            Kết quả
+            Result
           </CardTitle>
-          <CardDescription>Chưa có dữ liệu</CardDescription>
+          <CardDescription>No analysis yet</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex min-h-72 items-center justify-center rounded-md border border-dashed bg-muted/45 p-6 text-center text-sm text-muted-foreground">
-            Kết quả phân tích sẽ xuất hiện tại đây.
+            Run an analysis to see the predicted emotion and probability distribution.
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  const sortedScores = [...result.scores].sort((a, b) => b.score - a.score);
+  const sortedScores = [...result.scoreItems].sort((a, b) => b.score - a.score);
 
   return (
     <Card>
@@ -60,11 +60,16 @@ export function EmotionResultCard({ result, isLoading }: { result?: AnalysisResu
           <div>
             <CardTitle className="flex items-center gap-2">
               <span className="text-3xl leading-none">{result.emoji}</span>
-              {result.displayLabelVi}
+              {result.displayLabel}
             </CardTitle>
-            <CardDescription>{result.predictedLabel}</CardDescription>
+            <CardDescription>
+              {result.displayLabelVi} / {result.label}
+            </CardDescription>
           </div>
-          <Badge className="border-primary/20 bg-primary/10 text-primary">{formatPercent(result.confidence)}</Badge>
+          <div className="flex flex-col items-end gap-2">
+            <Badge className="border-primary/20 bg-primary/10 text-primary">{formatPercent(result.confidence)}</Badge>
+            <Badge>{formatLanguageName(result.language)}</Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -72,14 +77,25 @@ export function EmotionResultCard({ result, isLoading }: { result?: AnalysisResu
           <p className="line-clamp-4 text-sm leading-6 text-foreground">{result.inputText}</p>
         </div>
 
-        <ProbabilityChart scores={result.scores} />
+        <div className="grid gap-3 rounded-md border bg-white p-3 text-sm sm:grid-cols-2">
+          <div>
+            <span className="text-muted-foreground">Model</span>
+            <p className="mt-1 break-all font-semibold">{result.modelName}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Version</span>
+            <p className="mt-1 font-semibold">{result.modelVersion}</p>
+          </div>
+        </div>
+
+        <ProbabilityChart scores={result.scoreItems} />
 
         <div className="space-y-3">
           {sortedScores.map((score) => (
             <div key={score.label} className="grid grid-cols-[minmax(94px,1fr)_minmax(120px,2fr)_48px] items-center gap-3">
               <div className="flex min-w-0 items-center gap-2 text-sm font-medium">
                 <span>{score.emoji}</span>
-                <span className="truncate">{score.displayLabelVi}</span>
+                <span className="truncate">{score.displayLabel}</span>
               </div>
               <Progress value={score.score * 100} />
               <span className="text-right text-sm tabular-nums text-muted-foreground">{formatPercent(score.score)}</span>

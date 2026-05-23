@@ -5,12 +5,19 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 
 const LABEL_COLORS: Record<string, string> = {
   Sadness: "#3b82f6",
+  sadness: "#3b82f6",
   Surprise: "#f59e0b",
+  surprise: "#f59e0b",
   Disgust: "#10b981",
+  disgust: "#10b981",
   Fear: "#8b5cf6",
+  fear: "#8b5cf6",
   Anger: "#ef4444",
+  anger: "#ef4444",
   Other: "#64748b",
+  neutral: "#64748b",
   Enjoyment: "#14b8a6",
+  joy: "#14b8a6",
 };
 
 export function ProbabilityChart({ scores }: { scores: ScoreItem[] }) {

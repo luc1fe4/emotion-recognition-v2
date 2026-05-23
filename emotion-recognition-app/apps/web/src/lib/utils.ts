@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import type { SupportedLanguage } from "@emotion-recognition/shared";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -25,4 +26,8 @@ export function getErrorMessage(error: unknown) {
     return error.message;
   }
   return "Có lỗi xảy ra. Vui lòng thử lại.";
+}
+
+export function formatLanguageName(language: SupportedLanguage) {
+  return language === "en" ? "English" : "Vietnamese";
 }

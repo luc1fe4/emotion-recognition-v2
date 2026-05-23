@@ -1,10 +1,16 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { AnalysisResult, AnalyzeTextRequest } from "@emotion-recognition/shared";
-import { analyzeTextRequestSchema, MAX_TEXT_LENGTH } from "@emotion-recognition/shared";
+import type { AnalysisResult, AnalyzeTextRequest, SupportedLanguage } from "@emotion-recognition/shared";
+import {
+  DEFAULT_LANGUAGE,
+  LANGUAGE_LABELS,
+  MAX_TEXT_LENGTH,
+  SUPPORTED_LANGUAGES,
+  analyzeTextRequestSchema,
+} from "@emotion-recognition/shared";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, Loader2, Send, Sparkles } from "lucide-react";
+import { AlertCircle, Globe2, Loader2, Send, Sparkles } from "lucide-react";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -25,12 +31,13 @@ export function AnalyzerForm({
     resolver: zodResolver(analyzeTextRequestSchema),
     defaultValues: {
       text: "",
+      language: DEFAULT_LANGUAGE,
       source: "web",
     },
   });
 
   const mutation = useMutation({
-    mutationFn: (text: string) => analyzeEmotion(text),
+    mutationFn: (values: AnalyzeTextRequest) => analyzeEmotion(values.text, values.language),
     onMutate() {
       onLoadingChange(true);
     },
@@ -44,6 +51,9 @@ export function AnalyzerForm({
   });
 
   const text = form.watch("text") ?? "";
+  const language = form.watch("language") ?? DEFAULT_LANGUAGE;
+  const placeholder =
+    language === "en" ? "I am so happy today" : "h\u00f4m nay t\u00f4i r\u1ea5t vui \ud83d\ude0a";
 
   return (
     <Card>
@@ -54,7 +64,7 @@ export function AnalyzerForm({
               <Sparkles className="h-5 w-5 text-primary" />
               Emotion Analyzer
             </CardTitle>
-            <CardDescription>Vietnamese social text</CardDescription>
+            <CardDescription>Vietnamese and English social text</CardDescription>
           </div>
           <span className="rounded-md border bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
             {text.trim().length}/{MAX_TEXT_LENGTH}
@@ -62,17 +72,33 @@ export function AnalyzerForm({
         </div>
       </CardHeader>
       <CardContent>
-        <form
-          className="space-y-4"
-          onSubmit={form.handleSubmit((values) => mutation.mutate(values.text))}
-        >
+        <form className="space-y-4" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
+          <div className="space-y-2">
+            <span className="flex items-center gap-2 text-sm font-semibold">
+              <Globe2 className="h-4 w-4 text-primary" />
+              Language
+            </span>
+            <div className="grid grid-cols-2 gap-2 rounded-md border bg-muted p-1">
+              {SUPPORTED_LANGUAGES.map((option) => (
+                <Button
+                  key={option}
+                  type="button"
+                  variant={language === option ? "default" : "ghost"}
+                  onClick={() => form.setValue("language", option as SupportedLanguage, { shouldValidate: true })}
+                >
+                  {LANGUAGE_LABELS[option]}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-2">
             <label htmlFor="emotion-text" className="text-sm font-semibold">
-              Nội dung
+              Text
             </label>
             <Textarea
               id="emotion-text"
-              placeholder="hôm nay tôi rất vui 😊"
+              placeholder={placeholder}
               maxLength={MAX_TEXT_LENGTH}
               disabled={mutation.isPending}
               {...form.register("text")}

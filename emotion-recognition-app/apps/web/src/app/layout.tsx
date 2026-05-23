@@ -4,8 +4,8 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Vietnamese Emotion Recognition",
-  description: "Emotion recognition for Vietnamese social media text.",
+  title: "Bilingual Emotion Recognition",
+  description: "Emotion recognition for Vietnamese and English social media text.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
