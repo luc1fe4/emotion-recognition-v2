@@ -13,8 +13,11 @@
 ## Model
 
 - Use `AutoTokenizer.from_pretrained(repo_id)` and `AutoModelForSequenceClassification.from_pretrained(repo_id)` with `repo_id = "tazuneru/baseline-phobert-vsmec-emotion-recognition"`.
+- Add English support with `AutoModelForSequenceClassification.from_pretrained("tazuneru/roberta-emotion-english")` and `AutoTokenizer.from_pretrained("tazuneru/roberta-emotion-english")`.
 - Respect `id2label` from the model config when available.
 - Never fallback to mock predictions.
+- Use a model registry keyed by `language` instead of replacing the Vietnamese implementation.
+- Preload Vietnamese by default and load English lazily to reduce memory pressure on small hosts.
 
 ## Batch Processing
 
@@ -55,6 +58,7 @@
 
 - PostgreSQL is the source of truth for analysis history, batch jobs, and batch results.
 - Store probabilities as JSON because score keys are stable but model output is naturally map-like.
+- Add bilingual metadata fields additively: `language`, `modelName`, and `modelVersion`.
 
 ## Out Of Scope
 

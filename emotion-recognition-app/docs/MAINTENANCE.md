@@ -10,7 +10,7 @@
 
 - Monitor API latency, model inference latency, error rate, queue depth, and database connection usage.
 - Alert on repeated model API failures and stalled BullMQ jobs.
-- Check HF Space `/health` endpoint periodically — `modelLoaded` must be `true`; a `degraded` status means the model failed to load at startup.
+- Check HF Space `/health` endpoint periodically. `modelLoaded` reports the default language; inspect the `models` array for per-language status.
 
 ## Backups
 
@@ -20,7 +20,7 @@
 ## Model Update Process
 
 1. Review the new model repository and label mapping.
-2. Validate on representative Vietnamese social media examples.
+2. Validate on representative Vietnamese and English social media examples.
 3. Update documentation.
 4. Deploy the model API separately.
 5. Do not overwrite the immutable `emotion_recognition_model_v1/` folder without explicit approval.
@@ -28,6 +28,8 @@
 ## Troubleshooting
 
 - **Model loading fails on HF Space (`modelLoaded: false`)** — check that `HF_HOME` is set to a directory writable by the container user (e.g. `/home/appuser/.cache/huggingface`). A `PermissionError` on `/app/.cache` means the cache path is owned by root. Push a Dockerfile fix and let the Space rebuild.
+- **English request is slow the first time** — English loads lazily by default. This avoids loading two large models on startup but causes the first English request after cold start to take longer.
+- **HF Space runs out of memory** — keep `PRELOAD_LANGUAGES=vi`, use CPU lazy loading, or move to a larger Space/GPU/VPS. Do not replace the model with mock predictions.
 - **Backend returns 503** — check Railway logs for `Model API request failed`. Verify `MODEL_API_URL` is set to the correct HF Space URL and that the Space is running (not sleeping or building). The first request after a cold start may time out; wait and retry.
 - **CORS blocked on frontend** — verify `CORS_ORIGIN` on Railway includes the exact Vercel origin (no trailing slash). Multiple origins are comma-separated.
 - **`express-rate-limit` throws `ERR_ERL_UNEXPECTED_X_FORWARDED_FOR`** — ensure `app.set("trust proxy", 1)` is present in `app.ts` before any rate limiting middleware.

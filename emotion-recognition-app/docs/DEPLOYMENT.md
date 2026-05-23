@@ -28,6 +28,8 @@
   - `NODE_ENV=production`
   - `MAX_TEXT_LENGTH=700`
   - `CSV_MAX_FILE_SIZE_MB=5`
+  - `DEFAULT_LANGUAGE=vi`
+  - `SUPPORTED_LANGUAGES=vi,en`
 
 ## Model API: Hugging Face Spaces
 
@@ -37,6 +39,13 @@
 - The HF cache directory is set to `/home/appuser/.cache/huggingface` (not `/app/.cache`) to avoid a `PermissionError` when the non-root `appuser` attempts to download the model at startup.
 - Cold start can take 1–3 minutes while the PhoBERT model is downloaded and loaded into memory. Check `/health` — `modelLoaded` must be `true` before predictions work.
 - Free-tier Spaces may sleep after inactivity. The first request after waking will trigger a cold start.
+- Bilingual model environment variables:
+  - `VI_MODEL_NAME=tazuneru/baseline-phobert-vsmec-emotion-recognition`
+  - `EN_MODEL_NAME=tazuneru/roberta-emotion-english`
+  - `DEFAULT_LANGUAGE=vi`
+  - `SUPPORTED_LANGUAGES=vi,en`
+  - `PRELOAD_LANGUAGES=vi`
+- Loading both models with `PRELOAD_LANGUAGES=vi,en` can significantly increase RAM usage and cold-start time. Keep English lazy-loaded on small HF Spaces.
 
 ## Database
 

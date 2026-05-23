@@ -13,6 +13,8 @@
 | `LOG_LEVEL` | `info` | Winston log level. |
 | `MAX_TEXT_LENGTH` | `700` | Backend text length limit. |
 | `CSV_MAX_FILE_SIZE_MB` | `5` | CSV upload limit. |
+| `DEFAULT_LANGUAGE` | `vi` | Backward-compatible default language. |
+| `SUPPORTED_LANGUAGES` | `vi,en` | Comma-separated supported languages. |
 
 ## Frontend
 
@@ -24,7 +26,12 @@
 
 | Variable | Example | Description |
 | --- | --- | --- |
-| `MODEL_NAME` | `tazuneru/baseline-phobert-vsmec-emotion-recognition` | Hugging Face model ID. |
+| `MODEL_NAME` | `tazuneru/baseline-phobert-vsmec-emotion-recognition` | Legacy Vietnamese model variable kept for compatibility. |
+| `VI_MODEL_NAME` | `tazuneru/baseline-phobert-vsmec-emotion-recognition` | Vietnamese model repository. |
+| `EN_MODEL_NAME` | `tazuneru/roberta-emotion-english` | English model repository. |
+| `DEFAULT_LANGUAGE` | `vi` | Default language if omitted. |
+| `SUPPORTED_LANGUAGES` | `vi,en` | Comma-separated supported languages. |
+| `PRELOAD_LANGUAGES` | `vi` | Languages loaded during startup; use `vi,en` only when RAM allows both models. |
 | `DEVICE` | `cpu` | `cpu`, `cuda`, or `mps` when available. |
 | `MAX_TOKENS` | `256` | Token truncation length. |
 | `MAX_TEXT_LENGTH` | `700` | Input text character limit. |
@@ -35,3 +42,4 @@
 - Do not commit real `.env` files.
 - Keep database and Redis credentials out of frontend variables.
 - Only expose variables prefixed with `NEXT_PUBLIC_` to the browser.
+- Keep `CORS_ORIGIN` as an explicit allowlist in production.

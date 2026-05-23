@@ -1,10 +1,14 @@
 # Model Info
 
-## Hugging Face Repository
+The model API supports two languages through a registry keyed by `language`.
 
-`tazuneru/baseline-phobert-vsmec-emotion-recognition`
+## Vietnamese
 
-## Required Loading Method
+- Language: `vi`
+- Model repo: `tazuneru/baseline-phobert-vsmec-emotion-recognition`
+- Runtime: PhoBERT/RoBERTa sequence classification through Transformers.
+
+Required loading method:
 
 ```python
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
@@ -15,19 +19,7 @@ tokenizer = AutoTokenizer.from_pretrained(repo_id)
 model = AutoModelForSequenceClassification.from_pretrained(repo_id)
 ```
 
-## Runtime Dependencies
-
-- Python 3.10 or newer recommended.
-- FastAPI.
-- Uvicorn.
-- PyTorch.
-- Transformers.
-- Pydantic.
-- python-dotenv.
-
-## Label Mapping
-
-The existing model config exposes:
+Known Vietnamese config labels from the existing immutable local model config:
 
 | ID | Label |
 | --- | --- |
@@ -39,13 +31,44 @@ The existing model config exposes:
 | 5 | Other |
 | 6 | Enjoyment |
 
-The application respects this mapping and adds Vietnamese display labels and emojis.
+## English
+
+- Language: `en`
+- Model repo: `tazuneru/roberta-emotion-english`
+- Runtime: RoBERTa sequence classification through Transformers.
+
+Required loading method:
+
+```python
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
+model = AutoModelForSequenceClassification.from_pretrained("tazuneru/roberta-emotion-english")
+tokenizer = AutoTokenizer.from_pretrained("tazuneru/roberta-emotion-english")
+```
+
+The English model labels are read from `model.config.id2label` at runtime. A fallback mapping for common RoBERTa emotion labels is present only for degraded metadata display before config labels are available; runtime labels remain the source of truth.
+
+## Normalized Output
+
+Both languages return:
+
+- `label` and `predictedLabel`
+- `displayLabel`
+- `displayLabelVi`
+- `emoji`
+- `confidence`
+- `scores` as a label-to-probability object
+- `scoreItems` as chart-friendly rows
+- `language`
+- `modelName`
+- `modelVersion`
 
 ## Runtime Notes
 
-- The service loads tokenizer and model once through a singleton-style loader.
-- Inference uses `torch.no_grad()`.
-- Probabilities are produced with `torch.softmax`.
+- Models are loaded once per language and are never reloaded on every request.
+- Vietnamese preloads by default through `PRELOAD_LANGUAGES=vi`.
+- English loads lazily on the first English request unless included in `PRELOAD_LANGUAGES`.
+- Inference uses `torch.no_grad()` and `torch.softmax`.
 - `MAX_TOKENS` defaults to `256`.
-- `DEVICE` defaults to `cpu`; GPU is used only when explicitly configured and available.
-- Cold starts may be slow because model files must be downloaded or loaded into memory.
+- `DEVICE` defaults to `cpu`; `cuda` and `mps` are used only when configured and available.
+- Loading both models can significantly increase RAM usage and cold-start time.

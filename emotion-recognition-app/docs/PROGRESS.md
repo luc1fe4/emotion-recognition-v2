@@ -118,3 +118,69 @@
 - `df6b36b` - `fix: revert import condition to dist/index.js to fix Node.js ESM runtime (ERR_UNKNOWN_FILE_EXTENSION .ts)`
 - `36d29ae` - `fix: move HF cache to appuser home dir to fix PermissionError on model download` *(HF Space repo)*
 
+## 2026-05-24
+
+### Completed
+
+- Started bilingual Vietnamese + English extension.
+- Read the required project docs and inspected current model API, Express API, Prisma schema, shared contracts, frontend components, and deployment files.
+- Preserved the Vietnamese model flow and did not modify `emotion_recognition_model_v1/` or Git LFS configuration.
+- Added shared `language` contracts with `vi` and `en`, defaulting to `vi` for backward compatibility.
+- Added model metadata fields to shared responses: `language`, `modelName`, and `modelVersion`.
+- Added normalized `scores` map and `scoreItems` list for chart-friendly rendering.
+- Added additive Prisma schema changes and migration for bilingual metadata.
+- Refactored FastAPI model loading into a language registry:
+  - `vi` routes to `tazuneru/baseline-phobert-vsmec-emotion-recognition`.
+  - `en` routes to `tazuneru/roberta-emotion-english`.
+  - Vietnamese preloads by default.
+  - English loads lazily unless configured in `PRELOAD_LANGUAGES`.
+- Added the required English RoBERTa loading pattern exactly in `model_loader.py`.
+- Updated Express API validation, model forwarding, history persistence, CSV row parsing, batch jobs, and safe Zod-like error handling.
+- Updated frontend analyzer, batch upload, result card, chart, and history UI for language selection and model metadata.
+- Updated docs and env examples for bilingual model routing, API contracts, database fields, CSV rules, testing, deployment, and memory/cold-start risk.
+
+### Currently Running
+
+- Final documentation commit.
+
+### Decisions
+
+- `language` is first-class across frontend, Node API, FastAPI, CSV, history, and database records.
+- Requests without `language` default to `vi` to preserve the existing Vietnamese behavior.
+- English labels are read from `model.config.id2label` at runtime. The English fallback metadata only helps display common labels if config metadata is unavailable.
+- English model loading is lazy by default to avoid doubling startup RAM on small hosts.
+- The pre-existing untracked `.claude/` and `emotion-model-api-space/` folders were inspected only where relevant and left unmodified.
+
+### Blockers And Handling
+
+- `python` and `py` are still unavailable on PATH, so FastAPI runtime tests and real local model inference could not run in this environment.
+- Model API static checks confirmed the exact Vietnamese and English loading patterns, `torch.no_grad()`, and `torch.softmax()` are present.
+- The English model config could not be locally inspected without Python/model download. The implementation inspects `model.config.id2label` at runtime and documents that runtime config is the source of truth.
+
+### Test Results
+
+- `git status --short --branch`: showed pre-existing untracked `.claude/` and `emotion-model-api-space/`; both were left untouched.
+- `npm --workspace @emotion-recognition/shared run build`: passed.
+- `npm --workspace @emotion-recognition/api run prisma:generate`: passed.
+- `npm --workspace @emotion-recognition/api run typecheck`: passed.
+- `npm --workspace @emotion-recognition/web run typecheck`: passed.
+- `npm --workspace @emotion-recognition/api run test`: passed, 8 tests.
+- `npm --workspace @emotion-recognition/api run build`: passed.
+- `npm --workspace @emotion-recognition/web run build`: passed.
+- Full monorepo `npm run lint`: passed.
+- Full monorepo `npm run typecheck`: passed.
+- Full monorepo `npm run test`: passed, including 8 backend schema/CSV tests.
+- Full monorepo `npm run build`: passed.
+- `npm audit --omit=dev`: passed with 0 production vulnerabilities.
+- Frontend dev server smoke test: passed with HTTP 200 for `/` and `/history`.
+- Express API smoke test with model service offline:
+  - `GET /health`: passed.
+  - Vietnamese analyze request: safe model-unavailable response returned.
+  - English analyze request: safe model-unavailable response returned.
+  - Invalid language request: initially returned generic 500 due cross-package Zod detection; fixed middleware and reran successfully with safe 400 message.
+
+### Commits
+
+- `24b8f95` - `feat(model-api): add English RoBERTa emotion routing`
+- `833cf90` - `feat(api): support language-aware emotion analysis`
+- `098174e` - `feat(web): add bilingual emotion analysis UI`

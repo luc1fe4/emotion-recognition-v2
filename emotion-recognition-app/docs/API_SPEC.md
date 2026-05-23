@@ -10,20 +10,34 @@ Returns service status.
 {
   "success": true,
   "service": "emotion-recognition-api",
-  "status": "ok"
+  "status": "ok",
+  "modelApiUrl": "http://localhost:8000"
 }
 ```
 
 ## POST /api/emotions/analyze
 
-Request:
+Vietnamese request:
 
 ```json
 {
   "text": "hôm nay tôi rất vui",
+  "language": "vi",
   "source": "web"
 }
 ```
+
+English request:
+
+```json
+{
+  "text": "I am so happy today",
+  "language": "en",
+  "source": "web"
+}
+```
+
+If `language` is omitted, it defaults to `vi` for backward compatibility.
 
 Response:
 
@@ -31,15 +45,23 @@ Response:
 {
   "success": true,
   "data": {
-    "inputText": "hôm nay tôi rất vui",
-    "predictedLabel": "Enjoyment",
+    "id": "uuid",
+    "inputText": "I am so happy today",
+    "label": "joy",
+    "predictedLabel": "joy",
+    "displayLabel": "Joy",
     "displayLabelVi": "Vui vẻ",
     "emoji": "😊",
-    "confidence": 0.92,
-    "scores": [
-      { "label": "Sadness", "displayLabelVi": "Buồn", "emoji": "😢", "score": 0.01 }
-    ],
-    "createdAt": "2026-05-18T00:00:00.000Z"
+    "confidence": 0.95,
+    "scores": {
+      "joy": 0.95
+    },
+    "scoreItems": [],
+    "language": "en",
+    "modelName": "tazuneru/roberta-emotion-english",
+    "modelVersion": "main",
+    "source": "web",
+    "createdAt": "2026-05-24T00:00:00.000Z"
   }
 }
 ```
@@ -49,8 +71,11 @@ Response:
 Multipart form-data:
 
 - `file`: CSV file.
+- `language`: optional batch-level default, `vi` or `en`.
 
 Expected CSV column: `text`.
+
+Optional CSV column: `language`. Row-level language overrides the batch-level value.
 
 Response:
 
@@ -61,6 +86,7 @@ Response:
     "id": "uuid",
     "jobId": "uuid",
     "status": "queued",
+    "language": "vi",
     "totalRows": 12,
     "queueMode": "redis"
   }
@@ -86,13 +112,15 @@ Response:
 }
 ```
 
+Each item includes `language`, `modelName`, and `modelVersion`.
+
 ## GET /api/jobs/:jobId
 
 Returns batch job status.
 
 ## GET /api/jobs/:jobId/results
 
-Returns per-row batch results.
+Returns per-row batch results with language and model metadata.
 
 ## Error Envelope
 

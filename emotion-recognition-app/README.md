@@ -1,13 +1,13 @@
-# Vietnamese Social Media Emotion Recognition
+# Bilingual Social Media Emotion Recognition
 
-Production-oriented monorepo for Vietnamese social media emotion recognition. The app accepts informal Vietnamese text, teencode, slang, emojis, abbreviations, and noisy comments, then returns the predicted emotion, Vietnamese label, emoji, confidence, and full probability distribution.
+Production-oriented monorepo for Vietnamese and English social media emotion recognition. The app accepts informal text, slang, emojis, abbreviations, and noisy comments, then returns the predicted emotion, display labels, emoji, confidence, language, model metadata, and full probability distribution.
 
 ## Architecture
 
 Stage 1 and Stage 2 are implemented as a 3-tier client-server application with a separated model inference service:
 
 ```text
-Next.js frontend -> Node.js Express API -> FastAPI model API -> PostgreSQL
+Next.js frontend -> Node.js Express API -> FastAPI model registry -> PostgreSQL
 ```
 
 Batch CSV processing is prepared with Redis and BullMQ:
@@ -22,7 +22,7 @@ Clean Architecture is intentionally not used. The code follows a pragmatic route
 
 - Frontend: Next.js App Router, TypeScript, Tailwind CSS, shadcn-style UI components, React Hook Form, Zod, TanStack Query, Recharts.
 - Backend: Node.js, Express.js, TypeScript, Zod, Prisma, PostgreSQL, Winston, Morgan, Helmet, CORS, rate limiting, Multer, BullMQ.
-- Model API: FastAPI, Uvicorn, PyTorch, Transformers, Pydantic, python-dotenv.
+- Model API: FastAPI, Uvicorn, PyTorch, Transformers, Pydantic, python-dotenv, Vietnamese PhoBERT and English RoBERTa models.
 - Infrastructure: PostgreSQL and Redis via Docker Compose for local development.
 
 ## Local Development

@@ -27,3 +27,15 @@ The project request is to build an end-to-end Vietnamese social media emotion re
 - Express API with validation, logging, safe errors, Prisma persistence, CSV upload, and BullMQ worker support.
 - Next.js frontend with analyzer, result visualization, batch upload, export, and history.
 - PostgreSQL/Redis Docker Compose and environment examples.
+
+## Bilingual Extension Prompt
+
+The project request is to extend the existing Vietnamese emotion recognition app to bilingual Vietnamese + English support without breaking the Vietnamese flow.
+
+Major outputs:
+
+- FastAPI model registry keyed by `language`.
+- English model route for `tazuneru/roberta-emotion-english`.
+- Shared `language`, `modelName`, and `modelVersion` contracts.
+- Additive Prisma migration for bilingual metadata.
+- Frontend language selector, model metadata display, bilingual CSV upload, and language-aware history.

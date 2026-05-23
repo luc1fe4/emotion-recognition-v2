@@ -12,36 +12,72 @@ Response:
   "service": "emotion-recognition-model-api",
   "status": "ok",
   "modelLoaded": true,
-  "device": "cpu"
+  "defaultLanguage": "vi",
+  "supportedLanguages": ["vi", "en"],
+  "device": "cpu",
+  "models": [
+    {
+      "language": "vi",
+      "modelName": "tazuneru/baseline-phobert-vsmec-emotion-recognition",
+      "modelVersion": "main",
+      "loaded": true,
+      "labels": ["Sadness", "Surprise"],
+      "loadError": null
+    }
+  ]
 }
 ```
+
+`modelLoaded` reports whether the default language model is loaded. Per-language load status is available in `models`.
 
 ## POST /predict
 
-Request:
+Vietnamese request:
 
 ```json
 {
-  "text": "hôm nay tôi rất vui"
+  "text": "hôm nay tôi rất vui",
+  "language": "vi"
 }
 ```
+
+English request:
+
+```json
+{
+  "text": "I am so happy today",
+  "language": "en"
+}
+```
+
+If `language` is omitted, the service defaults to `vi`.
 
 Response:
 
 ```json
 {
-  "predictedLabel": "Enjoyment",
+  "label": "joy",
+  "predictedLabel": "joy",
+  "displayLabel": "Joy",
   "displayLabelVi": "Vui vẻ",
   "emoji": "😊",
-  "confidence": 0.92,
-  "scores": [
+  "confidence": 0.95,
+  "scores": {
+    "anger": 0.01,
+    "joy": 0.95
+  },
+  "scoreItems": [
     {
-      "label": "Enjoyment",
+      "label": "joy",
+      "displayLabel": "Joy",
       "displayLabelVi": "Vui vẻ",
       "emoji": "😊",
-      "score": 0.92
+      "score": 0.95
     }
-  ]
+  ],
+  "language": "en",
+  "modelName": "tazuneru/roberta-emotion-english",
+  "modelVersion": "main"
 }
 ```
 
@@ -52,8 +88,8 @@ Request:
 ```json
 {
   "items": [
-    { "text": "hôm nay tôi rất vui" },
-    { "text": "tôi buồn quá" }
+    { "text": "hôm nay tôi rất vui", "language": "vi" },
+    { "text": "I am so happy today", "language": "en" }
   ]
 }
 ```
@@ -64,20 +100,37 @@ Response:
 {
   "results": [
     {
-      "inputText": "hôm nay tôi rất vui",
+      "inputText": "I am so happy today",
+      "language": "en",
       "prediction": {
-        "predictedLabel": "Enjoyment",
+        "label": "joy",
+        "predictedLabel": "joy",
+        "displayLabel": "Joy",
         "displayLabelVi": "Vui vẻ",
         "emoji": "😊",
-        "confidence": 0.92,
-        "scores": []
+        "confidence": 0.95,
+        "scores": {},
+        "scoreItems": [],
+        "language": "en",
+        "modelName": "tazuneru/roberta-emotion-english",
+        "modelVersion": "main"
       }
     }
   ]
 }
 ```
 
-## Safe Error
+## Safe Errors
+
+Unsupported language:
+
+```json
+{
+  "detail": "Unsupported language. Use 'vi' or 'en'."
+}
+```
+
+Model unavailable:
 
 ```json
 {
