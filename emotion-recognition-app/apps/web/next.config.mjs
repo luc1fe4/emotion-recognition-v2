@@ -2,7 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
   agentRules: false,
-  transpilePackages: ["@emotion-recognition/shared"],
   async headers() {
     return [
       {
